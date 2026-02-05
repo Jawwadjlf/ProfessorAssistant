@@ -27,7 +27,15 @@ jobs:
          pip install pyinstaller
 
       - name: Build with PyInstaller
-        run: pyinstaller --noconsole --onefile --name ProfessorAssistant --exclude-module webrtcvad --add-data "models\\professor.onnx;models" assistant.py
+        run: |
+         pyinstaller --noconsole --onefile --name ProfessorAssistant `
+           --hidden-import=webrtcvad `
+           --hidden-import=openwakeword `
+           --hidden-import=paho.mqtt.client `
+           --hidden-import=google.generativeai `
+           --collect-data openwakeword `
+           --add-data "models;models" `
+           assistant.py
         shell: pwsh
 
       - name: Upload EXE
