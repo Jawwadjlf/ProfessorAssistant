@@ -22,16 +22,17 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+         pip install --upgrade pip
+         pip install -r requirements.txt
+         pip install pyinstaller
 
       - name: Build with PyInstaller
-        run: pyinstaller --noconsole --onefile --name ProfessorAssistant --add-data "models\\professor.onnx;models" assistant.py
+        run: pyinstaller --noconsole --onefile --name ProfessorAssistant --exclude-module webrtcvad --add-data "models\\professor.onnx;models" assistant.py
         shell: pwsh
-
 
       - name: Upload EXE
         uses: actions/upload-artifact@v4
         with:
-          name: ProfessorAssistant-windows-exe
-          path: ProfessorAssistant/dist/*.exe
+         name: ProfessorAssistant-windows-exe
+         path: dist/ProfessorAssistant.exe
+         if-no-files-found: error
