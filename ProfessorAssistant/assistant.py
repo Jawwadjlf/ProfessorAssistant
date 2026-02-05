@@ -604,7 +604,7 @@ def memory_context(profile: str) -> str:
         parts.append("Memory summary:\n" + summary)
     if recent:
         parts.append("Recent turns:\n" + "\n".join(
-            [f"User: {x.get('user','')}\nAssistant: {x.get('assistant','')}" for x in recent]
+            [f"User: {x.get('user','')} \nAssistant: {x.get('assistant','')}" for x in recent]
         ))
     return "\n\n".join(parts).strip()
 
@@ -743,16 +743,22 @@ def run_openai(profile: str, user_text: str) -> str:
     mem = memory_context(profile)
     instr = instructions_text()
 
-    input_text = (mem + "\n\n" if mem else "") + "User: " + user_text
+    messages = []
+    messages.append({"role": "system", "content": instr})
+    
+    if mem:
+        messages.append({"role": "system", "content": mem})
+    
+    messages.append({"role": "user", "content": user_text})
 
     try:
-        resp = openai_client.responses.create(
+        resp = openai_client.chat.completions.create(
             model=OPENAI_CHAT_MODEL,
-            instructions=instr,
-            input=input_text,
-            store=False
+            messages=messages,
+            temperature=0.7,
+            max_tokens=200
         )
-        return (resp.output_text or "").strip()
+        return (resp.choices[0].message.content or "").strip()
     except Exception as e:
         log(f"OpenAI error: {e}")
         return "I had a network error. Please try again."
@@ -787,12 +793,14 @@ def stt_openai(audio_float32: np.ndarray) -> str:
     buf = io.BytesIO()
     sf.write(buf, audio_float32, MIC_SAMPLE_RATE, format="WAV")
     buf.seek(0)
+    # Create a file-like object with name attribute
+    buf.name = "audio.wav"
+    
     try:
-        buf.name = "audio.wav"  # some backends like filename
-    except Exception:
-        pass
-    try:
-        tr = openai_client.audio.transcriptions.create(model="whisper-1", file=buf)
+        tr = openai_client.audio.transcriptions.create(
+            model="whisper-1", 
+            file=buf
+        )
         return (tr.text or "").strip()
     except Exception as e:
         log(f"Whisper STT error: {e}")
@@ -813,7 +821,6 @@ def stt_local(audio_float32: np.ndarray) -> str:
         return ""
 
 def speech_to_text(audio_float32: np.ndarray) -> str:
-    # “Streaming STT” (true partial streaming) is complex; this gives low latency via VAD + optional local STT.
     if STT_MODE == "local" and local_whisper:
         return stt_local(audio_float32)
     return stt_openai(audio_float32)
@@ -1104,52 +1111,9 @@ def switch_brain(icon, _item):
 def open_setup(icon, _item):
     setup_wizard()
     # Reload config after wizard
-    global CFG, WAKEWORD_MAP, DEVICES, HA_URL, HA_TOKEN, MQTT_HOST, MQTT_PORT, MQTT_USER, MQTT_PASS
-    global MIC_SAMPLE_RATE, MIC_BLOCKSIZE, WAKEWORD_THRESHOLD, VAD_MODE, MAX_RECORD_SECONDS, END_SILENCE_MS
-    global MIN_SPEECH_MS, FOLLOWUP_WINDOW_SECONDS, TTS_EN_VOICE, TTS_UR_VOICE, OPENAI_CHAT_MODEL
-    global OPENAI_API_KEY, openai_client, GEMINI_API_KEY, GEMINI_MODEL_NAME, gemini_model
-    global STT_MODE, LOCAL_STT_MODEL_NAME, local_whisper, vad, PUSH_TO_TALK_HOTKEY
-
+    global CFG
     CFG = load_cfg()
-
-    # Refresh runtime variables (some cannot fully re-init without restart; good enough for keys/devices)
-    WAKEWORD_MAP = CFG.get("wakeword_map") or {"professor": "default"}
-    DEVICES = CFG.get("devices") or {}
-    HA_URL = (CFG.get("ha_url") or "").strip()
-    HA_TOKEN = (CFG.get("ha_token") or "").strip()
-
-    MQTT_HOST = (CFG.get("mqtt_host") or "").strip()
-    MQTT_PORT = int(CFG.get("mqtt_port") or 1883)
-    MQTT_USER = (CFG.get("mqtt_user") or "").strip()
-    MQTT_PASS = (CFG.get("mqtt_pass") or "").strip()
-
-    OPENAI_API_KEY = (CFG.get("openai_api_key") or "").strip()
-    OPENAI_CHAT_MODEL = (CFG.get("openai_chat_model") or "gpt-4o-mini").strip()
-
-    if OpenAI and OPENAI_API_KEY:
-        openai_client = OpenAI(api_key=OPENAI_API_KEY)
-
-    GEMINI_API_KEY = (CFG.get("gemini_api_key") or "").strip()
-    GEMINI_MODEL_NAME = (CFG.get("gemini_model") or "gemini-1.5-flash").strip()
-    if genai and GEMINI_API_KEY:
-        try:
-            genai.configure(api_key=GEMINI_API_KEY)
-            gemini_model = genai.GenerativeModel(GEMINI_MODEL_NAME)
-        except Exception:
-            gemini_model = None
-
-    PUSH_TO_TALK_HOTKEY = (CFG.get("push_to_talk_hotkey") or "ctrl+alt+space").strip()
-
-    STT_MODE = (CFG.get("stt_mode") or "openai").lower().strip()
-    LOCAL_STT_MODEL_NAME = (CFG.get("local_stt_model") or "small").strip()
-    if STT_MODE == "local" and WhisperModel is not None:
-        try:
-            local_whisper = WhisperModel(LOCAL_STT_MODEL_NAME, device="cpu", compute_type="int8")
-        except Exception:
-            local_whisper = None
-            STT_MODE = "openai"
-
-    log("Setup updated. (Some changes may need app restart for wake models.)")
+    log("Setup updated. (Some changes may need app restart for full effect.)")
 
 def install_startup_menu(icon, _item):
     install_startup()
