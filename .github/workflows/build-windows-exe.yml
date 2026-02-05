@@ -30,9 +30,15 @@ jobs:
         run: pyinstaller ProfessorAssistant.spec
         shell: pwsh
 
-      - name: Upload EXE
+      - name: Copy models to dist folder
+        run: Copy-Item -Path "models" -Destination "dist/models" -Recurse
+        shell: pwsh
+
+      - name: Upload EXE with models
         uses: actions/upload-artifact@v4
         with:
          name: ProfessorAssistant-windows-exe
-         path: ProfessorAssistant/dist/ProfessorAssistant.exe
+         path: |
+           ProfessorAssistant/dist/ProfessorAssistant.exe
+           ProfessorAssistant/dist/models/
          if-no-files-found: error
