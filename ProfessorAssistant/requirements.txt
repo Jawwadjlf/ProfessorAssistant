@@ -2,14 +2,12 @@ numpy
 sounddevice
 soundfile
 openwakeword
-webrtcvad
+webrtcvad-wheels
 edge-tts
 pystray
 pillow
 requests
 openai
-google-generativeai
 keyboard
 paho-mqtt
 pyinstaller
-EOF
