@@ -34,5 +34,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
          name: ProfessorAssistant-windows-exe
-         path: dist/ProfessorAssistant.exe
+         path: ProfessorAssistant/dist/ProfessorAssistant.exe
          if-no-files-found: error
