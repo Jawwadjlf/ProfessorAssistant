@@ -14,14 +14,10 @@ a = Analysis(
         'webrtcvad',
         '_webrtcvad'
     ],
-    hookspath=[],
-    hooksconfig={
-        'webrtcvad': {'enabled': False}  # Disable the problematic hook
-    },
+    hookspath=['hooks'],  # Use our custom hooks directory
+    hooksconfig={},
     runtime_hooks=[],
-    excludes=[
-        '_pyinstaller_hooks_contrib.hooks.stdhooks.hook-webrtcvad'
-    ],
+    excludes=[],
     win_no_prefer_redirects=False,
     win_private_assemblies=False,
     cipher=block_cipher,
