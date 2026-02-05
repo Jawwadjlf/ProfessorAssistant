@@ -1,0 +1,15 @@
+numpy
+sounddevice
+soundfile
+openwakeword
+webrtcvad
+edge-tts
+pystray
+pillow
+requests
+openai
+google-generativeai
+keyboard
+paho-mqtt
+pyinstaller
+EOF
