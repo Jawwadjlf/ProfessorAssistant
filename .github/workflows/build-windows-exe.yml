@@ -24,7 +24,7 @@ jobs:
       - name: Build EXE
         shell: cmd
         run: |
-          pyinstaller --noconsole --onefile --name ProfessorAssistant/assistant.py
+          pyinstaller --noconsole --onefile --name ProfessorAssistant ProfessorAssistant/assistant.py
 
       - name: Upload EXE
         uses: actions/upload-artifact@v4
