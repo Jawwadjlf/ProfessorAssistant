@@ -26,18 +26,8 @@ jobs:
          pip install -r requirements.txt
          pip install pyinstaller
 
-      - name: Build with PyInstaller
-        run: |
-         pyinstaller --noconsole --onefile --name ProfessorAssistant `
-           --exclude-module _pyinstaller_hooks_contrib.hooks.stdhooks.hook-webrtcvad `
-           --hidden-import=openwakeword `
-           --hidden-import=paho.mqtt.client `
-           --hidden-import=google.generativeai `
-           --collect-data openwakeword `
-           --collect-binaries webrtcvad `
-           --add-data "models;models" `
-           --noupx `
-           assistant.py
+      - name: Build with PyInstaller using spec file
+        run: pyinstaller ProfessorAssistant.spec
         shell: pwsh
 
       - name: Upload EXE
