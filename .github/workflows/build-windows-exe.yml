@@ -29,12 +29,14 @@ jobs:
       - name: Build with PyInstaller
         run: |
          pyinstaller --noconsole --onefile --name ProfessorAssistant `
-           --hidden-import=webrtcvad `
+           --exclude-module _pyinstaller_hooks_contrib.hooks.stdhooks.hook-webrtcvad `
            --hidden-import=openwakeword `
            --hidden-import=paho.mqtt.client `
            --hidden-import=google.generativeai `
            --collect-data openwakeword `
+           --collect-binaries webrtcvad `
            --add-data "models;models" `
+           --noupx `
            assistant.py
         shell: pwsh
 
