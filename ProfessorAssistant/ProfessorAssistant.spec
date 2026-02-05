@@ -1,20 +1,30 @@
 # -*- mode: python ; coding: utf-8 -*-
+from PyInstaller.utils.hooks import collect_data_files, collect_dynamic_libs
 
 block_cipher = None
+
+# Collect all openwakeword data files (includes melspectrogram.onnx and other internal models)
+openwakeword_datas = collect_data_files('openwakeword')
+openwakeword_binaries = collect_dynamic_libs('openwakeword')
 
 a = Analysis(
     ['assistant.py'],
     pathex=[],
-    binaries=[],
-    datas=[('models', 'models')],
+    binaries=openwakeword_binaries,
+    datas=[('models', 'models')] + openwakeword_datas,
     hiddenimports=[
         'openwakeword',
+        'openwakeword.utils',
+        'openwakeword.model',
         'paho.mqtt.client',
         'google.generativeai',
         'webrtcvad',
-        '_webrtcvad'
+        '_webrtcvad',
+        'onnxruntime',
+        'onnxruntime.capi',
+        'onnxruntime.capi.onnxruntime_pybind11_state'
     ],
-    hookspath=['hooks'],  # Use our custom hooks directory
+    hookspath=['hooks'],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[],
@@ -37,7 +47,7 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=False,  # Disable UPX to avoid issues with binary extensions
+    upx=False,
     upx_exclude=[],
     runtime_tmpdir=None,
     console=False,
